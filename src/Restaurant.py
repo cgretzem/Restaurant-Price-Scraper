@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+
+
 class Restaurant(ABC):
     def __init__(self, address):
         self.address = address
@@ -16,3 +18,4 @@ class Restaurant(ABC):
 
     def get_product(self, name):
         return self.menu.get(name)
+

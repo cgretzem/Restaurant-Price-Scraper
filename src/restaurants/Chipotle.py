@@ -19,7 +19,6 @@ class Chipotle(Restaurant):
 
 
     def scrape_menu(self):
-        import requests
 
         url = f"https://services.chipotle.com/menuinnovation/v1/restaurants/{self.store_num}/onlinemenu?channelId=web&includeUnavailableItems=true"
 

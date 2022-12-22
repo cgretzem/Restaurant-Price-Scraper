@@ -1,8 +1,8 @@
 import requests
 class Address:
-    def __init__(self, zipcode, latitude, longitude, address=None):
+    def __init__(self, zipcode, latitude=0, longitude=0, address=None):
         self.address = address
-        self.zip = zipcode
+        self.zipcode = zipcode
         self.lat = latitude
         self.long = longitude
 
