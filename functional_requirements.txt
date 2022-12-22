@@ -1,0 +1,5 @@
+1. The System should be able to get restaruant prices from online
+2. The System should be able to save the prices to an excel spreadsheet
+3. The System should load addresses from an excel spreadsheet
+4. The System should be able to translate addresses to zip code
+5. The system should load products from an excel spreadsheet
