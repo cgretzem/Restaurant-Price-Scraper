@@ -4,6 +4,7 @@ from restaurants.Chipotle import Chipotle
 from Address import Address
 from Excel import Excel
 from RestaurantFactory import RestaurantFactory
+from restaurants.JackInTheBox import JackInTheBox
 from restaurants.Wendys import Wendys
 def main():
     ex = Excel('Jan 2023 copy.xlsx')
@@ -30,5 +31,5 @@ def main():
 if __name__ == "__main__":
     #lat, long = Address.geocode(92673)
     addr = Address(zipcode = 92673, longitude =-117.613509, latitude =33.467371)
-    bk = BurgerKing(addr)
-    print(bk.menu)
+    jack = JackInTheBox(addr)
+    print(jack.menu)
