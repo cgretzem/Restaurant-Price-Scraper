@@ -8,6 +8,16 @@ class Excel:
     def get_sheet_names(self):
         return self.workbook.sheetnames
 
+    def get_all_zips(self):
+        zips = []
+        for sheet_name in self.workbook.sheetnames:
+            self.set_active_sheet(sheet_name)
+            ws_zips = self.read_zips()
+            for code in ws_zips:
+                if code not in zips:
+                    zips.append(code)
+        return zips
+
     def get_col(self, col_name):
         sheet = self.workbook.active
         z_index = -1
