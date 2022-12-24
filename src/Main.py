@@ -1,11 +1,13 @@
 
 from restaurants.BurgerKing import BurgerKing
+from restaurants.CarlsJr import CarlsJr
 from restaurants.Chipotle import Chipotle
 from Address import Address
 from Excel import Excel
 from RestaurantFactory import RestaurantFactory
 from restaurants.JackInTheBox import JackInTheBox
 from restaurants.Wendys import Wendys
+from selenium import webdriver
 def main():
     ex = Excel('Jan 2023 copy.xlsx')
     for sheet_name in ex.get_sheet_names():
@@ -31,5 +33,6 @@ def main():
 if __name__ == "__main__":
     #lat, long = Address.geocode(92673)
     addr = Address(zipcode = 92673, longitude =-117.613509, latitude =33.467371)
-    jack = JackInTheBox(addr)
+    driver = webdriver.Chrome()
+    jack = CarlsJr(addr, driver)
     print(jack.menu)
