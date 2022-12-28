@@ -1,7 +1,7 @@
 from Restaurant import Restaurant
 import requests
 import json
-
+import aiohttp
 class BurgerKing(Restaurant):
     def __init__(self, address):
         super().__init__(address)
@@ -17,13 +17,22 @@ class BurgerKing(Restaurant):
             'item_43092': 'Medium Coke',
             'item_43093': 'Large Coke',
             'item_781': 'Shakes (Vanilla/Chocolate/Strawberry',
-            'item_581': 'Bk Café Iced Coffee'
+            'item_581': 'Bk Café Iced Coffee',
+            'item_584': 'Bk Café Iced Coffee',
+            'item_53713' : 'Small Coke',
+            'item_53714' : 'Medium Coke',
+            'item_53715' : 'Large Coke',
+            "item_52523" : 'Small Coke',
+            "item_52524" : 'Medium Coke',
+            "item_52525" : 'Large Coke'
             }
-        self.get_store()
         
-        self.scrape_menu()
 
-    def scrape_menu(self):
+    async def scrape_menu(self):
+        if self.store_num == None:
+            self.default = True
+            self.menu = self.default_menu()
+            return
         url = f"https://use1-prod-bk-gateway.rbictg.com/graphql?operationName=storeMenu&variables=%7B%22channel%22%3A%22whitelabel%22%2C%22region%22%3A%22US%22%2C%22storeId%22%3A%22{self.store_num}%22%2C%22serviceMode%22%3A%22pickup%22%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%22713eb1f46bf8b3ba1a867c65d0e0fd2a879cf0e2d1d3e9788addda059e617cc0%22%7D%7D"
 
         payload={}
@@ -50,14 +59,25 @@ class BurgerKing(Restaurant):
         'x-user-datetime': '2022-12-22T14:33:50-07:00'
         }
 
-        response = requests.request("GET", url, headers=headers, data=payload).json()
-        for item in response['data']['storeMenu']:
-            if item['id'] in self.availProducts.keys():
-                self.menu[self.availProducts[item['id']]] = item['price']['default']/100
+        response = await self.fetch(url, headers=headers, payload=payload)
+        if not 'errors' in response.keys():
+            for item in response['data']['storeMenu']:
+                if item['id'] in self.availProducts.keys():
+                    if item['isAvailable'] == False and self.availProducts[item['id']] not in self.menu.keys():
+                        self.menu[self.availProducts[item['id']]] = -1
+                        continue
+                    if self.availProducts[item['id']] not in self.menu.keys() or self.menu[self.availProducts[item['id']]] == -1 or self.menu[self.availProducts[item['id']]] == 0:
+                        self.menu[self.availProducts[item['id']]] = item['price']['default']/100
+
+
+        if not self.menu:
+            self.store_index += 1
+            await self.get_store(index = self.store_index)
+            await self.scrape_menu()
         
 
 
-    def get_store(self):
+    async def get_store(self, index = 0):
 
         url = "https://use1-prod-bk.rbictg.com/graphql"
 
@@ -101,8 +121,16 @@ class BurgerKing(Restaurant):
         'x-ui-region': 'US',
         'x-user-datetime': '2022-12-22T14:26:33-07:00'
         }
+        response = await self.post(url, headers=headers, payload=payload)
+        try:
+            
+            self.store_num = int(response[0]['data']['restaurants']['nodes'][index]['storeId'])
+            self.address.address = response[0]['data']['restaurants']['nodes'][index]['physicalAddress']['address1']
+            if response[0]['data']['restaurants']['nodes'][index]['isAvailable'] == False:
+                self.store_index += 1
+                await self.get_store(index = self.store_index)
+        except IndexError:
+            self.store_num = None
 
-        response = requests.request("POST", url, headers=headers, data=payload).json()
 
-        self.store_num = int(response[0]['data']['restaurants']['nodes'][0]['storeId'])
-        self.address.address = response[0]['data']['restaurants']['nodes'][0]['physicalAddress']['address1']
+

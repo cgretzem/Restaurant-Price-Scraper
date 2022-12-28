@@ -50,6 +50,10 @@ class CarlsJr(Restaurant):
 
         #self.scrape_menu()
     def scrape_menu(self):
+        if self.store_num == None:
+            self.default = True
+            self.menu = self.default_menu()
+            return
         url = f'https://nomnom-prod-api.carlsjr.com/restaurants/{self.store_num}/menu?nomnom=add-restaurant-to-menu'
         
         self.driver.get(url)
@@ -71,9 +75,13 @@ class CarlsJr(Restaurant):
                             self.add_size_group(product['id'], self.availProducts[product['name']], ['Small', 'Medium',' Large'])
                     else:
                         self.menu[self.availProducts[product['name']]] = product['cost']
+        if not self.menu:
+            self.store_index += 1
+            self.get_store(index = self.store_index)
+            self.scrape_menu()
 
 
-    def get_store(self):
+    def get_store(self,index = 0):
         url = f'https://nomnom-prod-api.carlsjr.com/restaurants/near?lat={self.address.lat}&long={self.address.long}&radius=50&limit=25&nomnom=calendars&nomnom_calendars_from=20221222&nomnom_calendars_to=20221230&nomnom_exclude_extref=999'
         
         self.driver.get(url)
@@ -81,5 +89,8 @@ class CarlsJr(Restaurant):
         #print(soup.find('pre').text)
         response = json.loads(soup.find('pre').text)
         #driver.close()
-        self.address = response['restaurants'][0]['streetaddress']
-        self.store_num = response['restaurants'][0]['id']
+        try:
+            self.address = response['restaurants'][index]['streetaddress']
+            self.store_num = response['restaurants'][index]['id']
+        except IndexError:
+            self.store_num = None

@@ -18,11 +18,9 @@ class JackInTheBox(Restaurant):
             "Chicken Nuggets (5) Meal":'4PC Chicken Nuggets Kids Meal'
         }
         self.ids = {}
-        self.get_store()
-        self.scrape_menu()
 
 
-    def add_size_group(self, prod_id, prod_name, options):
+    async def add_size_group(self, prod_id, prod_name, options, add_prefix = True):
 
 
         url = f"https://www.jackinthebox.com/products/{prod_id}/modifiers?clientid=jackinthebox&nomnom=product-modifiers&nomnom_restaurant_id={self.store_num}"
@@ -30,49 +28,71 @@ class JackInTheBox(Restaurant):
         payload={}
         headers = {}
 
-        response = requests.request("GET", url, headers=headers, data=payload).json()
+        response = await self.fetch(url, headers=headers, payload=payload)
 
         for opt in options:
+            prefix = opt + ' '
+            if not add_prefix:
+                prefix = ''
             if opt == 'Small' or opt == 'Regular':
-                self.menu[opt +" "+ prod_name] = response['optiongroups'][0]['options'][0]['cost']
+                self.menu[prefix + prod_name] = response['optiongroups'][0]['options'][0]['cost']
             elif opt == 'Medium':
-                self.menu[opt +" "+ prod_name] = response['optiongroups'][0]['options'][1]['cost']
+                self.menu[prefix + prod_name] = response['optiongroups'][0]['options'][1]['cost']
             else:
                 try:
-                    self.menu[opt +" "+ prod_name] = response['optiongroups'][0]['options'][2]['cost']
+                    self.menu[prefix + prod_name] = response['optiongroups'][0]['options'][2]['cost']
                 except:
-                    self.menu[opt +" "+ prod_name] = response['optiongroups'][0]['options'][1]['cost']
+                    try:
+                        self.menu[prefix + prod_name] = response['optiongroups'][0]['options'][1]['cost']
+                    except:
+                        self.menu[prefix + prod_name] = -1
 
 
-    def scrape_menu(self):
+    async def scrape_menu(self):
+        if self.store_num == None:
+            self.default = True
+            self.menu = self.default_menu()
+            return
         url = f"https://www.jackinthebox.com/restaurants/{self.store_num}/menu?nomnom=add-restaurant-to-menu"
 
         payload={}
         headers = {}
 
-        response = requests.request("GET", url, headers=headers, data=payload).json()
+        response = await self.fetch(url, headers=headers, payload=payload)
 
         for category in response['categories']:
             for product in category['products']:
                 if product['name'] in self.availProducts.keys():
                     if product['cost'] == 0:
                         if "Combo" in product['name']:
-                            self.add_size_group(product['id'], self.availProducts[product['name']], ['Small'])
+                            await self.add_size_group(product['id'], self.availProducts[product['name']], ['Small'], add_prefix=False)
                         elif "Shake" in product['name']:
-                            self.add_size_group(product['id'], self.availProducts[product['name']], ['Regular, Large'])
+                            await self.add_size_group(product['id'], self.availProducts[product['name']], ['Regular, Large'])
                         else:
-                            self.add_size_group(product['id'], self.availProducts[product['name']], ['Small', 'Medium',' Large'])
+                            await self.add_size_group(product['id'], self.availProducts[product['name']], ['Small', 'Medium',' Large'])
                     else:
                         self.menu[self.availProducts[product['name']]] = product['cost']
+        if not self.menu:
+            self.store_index += 1
+            await self.get_store(index = self.store_index)
+            await self.scrape_menu()
 
 
-    def get_store(self):
+    async def get_store(self, index = 0):
         url = f"https://www.jackinthebox.com/restaurants/near?lat={self.address.lat}&long={self.address.long}&radius=20&limit=6&nomnom=calendars&nomnom_calendars_from=20221221&nomnom_calendars_to=20221229&nomnom_exclude_extref=999"
 
         payload={}
         headers = {}
 
-        response = requests.request("GET", url, headers=headers, data=payload).json()
+        response = await self.fetch(url, headers=headers, payload=payload)
 
-        self.store_num = response['restaurants'][0]['id']
-        self.address.address = response['restaurants'][0]['streetaddress']
+        
+        try:
+            if not response['restaurants'][index]['isavailable']:
+                self.store_index += 1
+                await self.get_store(self.store_index)
+            else:
+                self.store_num = response['restaurants'][index]['id']
+                self.address.address = response['restaurants'][index]['streetaddress']
+        except IndexError:
+            self.store_num = None

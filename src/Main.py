@@ -17,7 +17,7 @@ def main():
         with open('zipCodes.csv', 'r') as f:
             for line in f:
                 vals = line.split(',')
-                zips[vals[0]] = vals[1]
+                zips[int(vals[0])] = (float(vals[1]),float(vals[2]))
     except FileNotFoundError:
         codes = ex.get_all_zips()
         zips_not_found = []
@@ -34,20 +34,28 @@ def main():
         print(zips_not_found)
     
     for sheet_name in ex.get_sheet_names():
-        if sheet_name == "McDonald":
+        # if sheet_name == "McDonald":
+        #     continue
+
+        if sheet_name != "Burger King":
             continue
         ex.set_active_sheet(sheet_name)
         items = {}
-        for zipcode in ex.read_zips():
+        all_zips = ex.read_zips()
+        for index,zipcode in enumerate(all_zips):
             #SKIP IF NO GEOCODING
-            lat, long = Address.geocode(zipcode)
+            lat, long = (zips[zipcode][0], zips[zipcode][1])
             addr = Address(zipcode, lat, long)
             restaurant = RestaurantFactory.create(sheet_name, addr, driver)
             print('----------------')
             print(f'Restaurant: {restaurant.store_num}')
+            print(f'ZipCode: {restaurant.address.zipcode}')
             print(f'Address: {restaurant.address.address}')
             print(f'Menu: {restaurant.menu}')
             print("-----------------\n")
+            print(f'Progress: {index+1}/{len(all_zips)}')
+            out = f"[{'#'*(int(index/(len(all_zips)/25)))}{'.'*(25-int(index/(len(all_zips)/25)))}]"
+            print(out)
             for item, price in restaurant.menu.items():
                 items.setdefault(item, []).append(price)
             items.setdefault('Competitive Address', []).append(restaurant.address.address)

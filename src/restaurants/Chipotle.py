@@ -6,20 +6,23 @@ from Restaurant import Restaurant
 class Chipotle(Restaurant):
     def __init__(self, address):
         super().__init__(address)
-        self.availProducts = [
-                'Chicken Burrito',
-                'Steak Burrito',
-                'Guacamole',
-                'Chicken Quesadilla',
-                'Steak Quesadilla'
-        ]
+        self.availProducts = {
+                'Chicken Burrito': 'Chicken Burrito',
+                'Steak Burrito':'Steak Burrito',
+                'Guacamole':'Guacamole',
+                'Chicken Quesadilla':'Chicken Quesadilla',
+                'Steak Quesadilla':'Steak Quesadilla'
+        }
         self.get_store()
         
         self.scrape_menu()
 
 
     def scrape_menu(self):
-
+        if self.store_num == None:
+            self.default = True
+            self.menu = self.default_menu()
+            return
         url = f"https://services.chipotle.com/menuinnovation/v1/restaurants/{self.store_num}/onlinemenu?channelId=web&includeUnavailableItems=true"
 
         payload={}
@@ -31,11 +34,15 @@ class Chipotle(Restaurant):
         response = requests.request("GET", url, headers=headers, data=payload).json()
         for item in response['entrees']:
             #print(item['itemName'])
-            if item['itemName'] in self.availProducts:
+            if item['itemName'] in self.availProducts.keys():
                 self.menu[item['itemName']] = item['unitPrice']
-        
 
-    def get_store(self):
+        if not self.menu:
+            self.store_index += 1
+            self.get_store(index = self.store_index)
+            self.scrape_menu()
+
+    def get_store(self, index = 0):
         url = "https://services.chipotle.com/restaurant/v3/restaurant"
 
         payload = json.dumps({
@@ -88,6 +95,8 @@ class Chipotle(Restaurant):
         }
 
         response = requests.request("POST", url, headers=headers, data=payload).json()
-
-        self.store_num = response['data'][0]['restaurantNumber']
-        self.address.address = response['data'][0]['addresses'][0]
+        try:
+            self.store_num = response['data'][index]['restaurantNumber']
+            self.address.address = response['data'][index]['addresses'][0]
+        except IndexError:
+            self.store_num = None

@@ -22,7 +22,7 @@ class Excel:
         sheet = self.workbook.active
         z_index = -1
         for index,name in enumerate(sheet[1]):
-            if name.value.strip() == col_name:
+            if name.value.replace(' ', '') == col_name.replace(' ', ''):
                 z_index = index+1
                 break
         return z_index
@@ -32,8 +32,19 @@ class Excel:
         index = self.get_col(name)
         for i, price in enumerate(price_list):
             cell_str = chr(ord('A')+index-1) + str(i+2)
-            sheet[cell_str] = price
+            if price != -1:
+                sheet[cell_str] = price
         self.workbook.save('output.xlsx')
+
+    def get_addresses(self):
+        zips = []
+        sheet = self.workbook.active
+        z_index = self.get_col("Address")
+        for zipcode in sheet.iter_rows(min_row=2, min_col = z_index, max_col=z_index):
+            zips.append(zipcode[0].value)
+        return zips 
+
+
     def set_active_sheet(self, name):
         self.workbook.active = self.workbook[name]
 

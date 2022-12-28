@@ -7,41 +7,59 @@ class Wendys(Restaurant):
         super().__init__(address)
         self.availProducts = {
             "Dave's Single®": "Dave's Single Burger",
+            "Dave's Single® LIDS Combo" : "Dave's Single Combo (Small)",
             "Dave's Single® Combo": "Dave's Single Combo (Small)",
+            "Dave's Single® Mustard Combo" : "Dave's Single Combo (Small)",
             "Dave's Double®": "Dave's Double Burger",
+            "Dave's Double® Mustard Combo" : "Dave's Double Combo (Small)",
+            "Dave's Double® LIDS Combo" : "Dave's Double Combo (Small)",
             "Dave's Double® Combo": "Dave's Double Combo (Small)",
             "Kids' Hamburger": "Kid's Meal Hamburger",
-            "Kids' 4PC Nuggets": "Kid's Meal 4 Pc Nuggets",
+            "Kids' Hamburger Frosty": "Kid's Meal Hamburger",
+            "Kids' 4PC Nuggets": "Kid's Meal 4 Pc Nuggets ",
+            "Kids' 4PC Nuggets Frosty" : "Kid's Meal 4 Pc Nuggets ",
             "Small Fries": "Small Fries",
             "Medium Fries": "Medium Fries",
             "Large Fries": "Large Fries",
             "SM FREESTYLE": "Small Fountain Drink",
+            'Small Coca-Cola®' : "Small Fountain Drink",
+            'Medium Coca-Cola®' : "Medium Fountain Drink",
+            'Large Coca-Cola®' : "Large Fountain Drink",
             "MD FREESTYLE": "Medium Fountain Drink",
             "LG FREESTYLE": "Large Fountain Drink"
         }
+        self.menu = self.default_menu()
 
-        self.get_store()
-        
-        self.scrape_menu()
-
-    def scrape_menu(self):
-
+    async def scrape_menu(self):
+        if self.store_num == None:
+            self.default = True
+            self.menu = self.default_menu()
+            return
         url = f"https://digitalservices-cdn.wendys.com/menu/getSiteMenu?lang=en&cntry=US&sourceCode=ORDER.WENDYS&version=20.0.3&siteNum={self.store_num}&freeStyleMenu=true"
 
         payload={}
         headers = {}
 
-        response = requests.request("GET", url, headers=headers, data=payload).json()
+        response = await self.fetch(url, headers=headers, payload=payload)
 
+        for item in response['menuLists']['menuItems']:
+            if item['name'] in self.availProducts.keys():
+                self.menu[self.availProducts[item['name']]] = item["price"]
+        
         for item in response['menuLists']['salesItems']:
             if item['name'] in self.availProducts.keys():
                 self.menu[self.availProducts[item['name']]] = item["price"]
 
+        
+        if not self.menu:
+            self.store_index += 1
+            self.get_store(index = self.store_index)
+            self.scrape_menu()
 
 
-    def get_store(self):
+    async def get_store(self, index = 0):
 
-        url = f"https://digitalservices.prod.ext-aws.wendys.com/LocationServices/rest/nearbyLocations?&lang=en&cntry=US&sourceCode=ORDER.WENDYS&version=20.0.3&address={self.address.zipcode}&limit=25&filterSearch=true&hasMobileOrder=true&radius=20"
+        url = f"https://digitalservices.prod.ext-aws.wendys.com/LocationServices/rest/nearbyLocations?&lang=en&cntry=US&sourceCode=ORDER.WENDYS&version=20.0.3&address={self.address.del_address.replace(' ', '%20').replace('.','')}&limit=25&filterSearch=true&hasMobileOrder=true&radius=20"
 
         payload={}
         headers = {
@@ -60,9 +78,15 @@ class Wendys(Restaurant):
         'Cookie': 'JSESSIONID=BE705EF682B9177DD99DB3D5EA0F796C'
         }
 
-        response = requests.request("GET", url, headers=headers, data=payload).json()
-        self.store_num = response['data'][0]['id']
-        self.address.address = response['data'][0]['address1']
+        response = await self.fetch(url, headers=headers, payload=payload)
+
+        try:
+            self.store_num = response['data'][index]['id']
+            self.address.address = response['data'][index]['address1']
+        except IndexError:
+            self.store_num = None
+        except KeyError:
+            self.store_num = None
 
 
         
