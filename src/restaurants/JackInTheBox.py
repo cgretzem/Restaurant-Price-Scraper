@@ -8,7 +8,7 @@ class JackInTheBox(Restaurant):
             "Jumbo Jack®":'Jumbo Jack',
             "Double Jack® Combo":'Double Jack Combo (Small)',
             "Jumbo Jack® Combo":'Jumbo Jack Combo (Small)',
-            "54439851":'Double Jack Cheese Burger',
+            "Double Jack®":'Double Jack Cheese Burger',
             "-1" :'2 Monster Tacos',
             "2 Tacos for $0.99":'2 Tacos',
             "French Fries": "French  Fries",
@@ -17,8 +17,23 @@ class JackInTheBox(Restaurant):
             "Hamburger Meal":'Hamburger Kids Meal',
             "Chicken Nuggets (5) Meal":'4PC Chicken Nuggets Kids Meal'
         }
-        self.ids = {}
+        
 
+
+    def default_menu(self):
+        menu = {}
+        for product in self.availProducts.values():
+            if "Fries" not in product and "Drink" not in product and "Shake" not in product:
+                menu[product] = -1
+        menu["Small French  Fries"] = -1
+        menu["Medium French  Fries"] = -1
+        menu["Large French  Fries"] = -1
+        menu["Small Fountain Drink"] = -1
+        menu["Medium Fountain Drink"] = -1
+        menu["Large Fountain Drink"] = -1
+        menu["Regular Shake (Vanilla/Chocolate/Strawberry)"] = -1
+        menu["Large Shake (Vanilla/Chocolate/Strawberry)"] = -1
+        return menu
 
     async def add_size_group(self, prod_id, prod_name, options, add_prefix = True):
 
@@ -29,12 +44,18 @@ class JackInTheBox(Restaurant):
         headers = {}
 
         response = await self.fetch(url, headers=headers, payload=payload)
+        
 
         for opt in options:
+            
             prefix = opt + ' '
             if not add_prefix:
                 prefix = ''
+            if not response['optiongroups']:
+                self.menu[prefix + prod_name] = -1
+                continue
             if opt == 'Small' or opt == 'Regular':
+                
                 self.menu[prefix + prod_name] = response['optiongroups'][0]['options'][0]['cost']
             elif opt == 'Medium':
                 self.menu[prefix + prod_name] = response['optiongroups'][0]['options'][1]['cost']
@@ -67,9 +88,9 @@ class JackInTheBox(Restaurant):
                         if "Combo" in product['name']:
                             await self.add_size_group(product['id'], self.availProducts[product['name']], ['Small'], add_prefix=False)
                         elif "Shake" in product['name']:
-                            await self.add_size_group(product['id'], self.availProducts[product['name']], ['Regular, Large'])
+                            await self.add_size_group(product['id'], self.availProducts[product['name']], ['Regular', 'Large'])
                         else:
-                            await self.add_size_group(product['id'], self.availProducts[product['name']], ['Small', 'Medium',' Large'])
+                            await self.add_size_group(product['id'], self.availProducts[product['name']], ['Small', 'Medium','Large'])
                     else:
                         self.menu[self.availProducts[product['name']]] = product['cost']
         if not self.menu:

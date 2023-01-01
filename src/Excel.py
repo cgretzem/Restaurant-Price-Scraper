@@ -31,7 +31,12 @@ class Excel:
         sheet = self.workbook.active
         index = self.get_col(name)
         for i, price in enumerate(price_list):
-            cell_str = chr(ord('A')+index-1) + str(i+2)
+            cell_str = chr(ord('A')+((index-1)%26))
+            if index > 26:
+                cell_str = 'A'
+                cell_str += chr(ord('A')+((index-27)%26))
+                
+            cell_str += str(i+2)
             if price != -1:
                 sheet[cell_str] = price
         self.workbook.save('output.xlsx')

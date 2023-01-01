@@ -42,6 +42,7 @@ class Restaurant(ABC):
 
     async def initalize(self):
         self.session = ClientSession()
+        self.menu = self.default_menu()
         await self.get_store()
         await self.scrape_menu()
         await self.session.close()

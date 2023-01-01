@@ -19,7 +19,7 @@ async def task_func(zips, zipcode, sheet_name, driver, address):
         print(f'Address: {restaurant.address.address}')
         print(f'Menu: {restaurant.menu}')
         print("-----------------\n")
-        items = {}
+
         return (restaurant.address.address, restaurant.menu)
 
 async def run_test(name):
@@ -60,7 +60,9 @@ async def run_test(name):
         items.setdefault('Competitive Address', []).append(item_obj[0])
 
     driver.close()
+    print("WRITING TO EXCEL")
     for item, lst in items.items():
+
         ex.put_prices(item, lst)
 
 
@@ -100,6 +102,7 @@ async def run_all_restaurants():
                 items.setdefault(item, []).append(lst)
             items.setdefault('Competitive Address', []).append(item_obj[0])
 
+    print("WRITING TO EXCEL")
     for item, lst in items.items():
         ex.put_prices(item, lst)
 
