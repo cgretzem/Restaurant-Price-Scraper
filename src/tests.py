@@ -108,4 +108,4 @@ async def run_all_restaurants():
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(run_test('Taco Bell'))
+    loop.run_until_complete(run_test('Taco Bueno'))
