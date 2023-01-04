@@ -4,8 +4,7 @@ from Excel import Excel
 from selenium import webdriver
 from RestaurantFactory import RestaurantFactory
 import asyncio
-
-
+import time
 
 
 async def task_func(zips, zipcode, sheet_name, driver, address):
@@ -62,7 +61,6 @@ async def run_test(name):
     driver.close()
     print("WRITING TO EXCEL")
     for item, lst in items.items():
-
         ex.put_prices(item, lst)
 
 
@@ -96,7 +94,9 @@ async def run_all_restaurants():
         items = {}
         all_zips = ex.read_zips()
         tasks = [task_func(zips, zipcode, sheet_name, driver) for index,zipcode in enumerate(all_zips)]
+        start = time.perf_counter()
         results = await asyncio.gather(*tasks)
+        total = start = time.perf_counter()
         for item_obj in results:
             for item, lst in item_obj[1].items():
                 items.setdefault(item, []).append(lst)
@@ -108,4 +108,4 @@ async def run_all_restaurants():
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(run_test('Jack In the Box'))
+    loop.run_until_complete(run_test('Taco Bell'))

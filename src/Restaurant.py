@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from aiohttp import ClientSession
 from aiohttp import client_exceptions
 from asyncio import sleep
+
+import aiohttp
 class Restaurant(ABC):
     def __init__(self, address):
         self.address = address
@@ -20,6 +22,7 @@ class Restaurant(ABC):
         for x in range(3):
             try:
                 async with self.session.get(url, headers=headers, data=payload) as response:
+                    print(await response.text())
                     return await response.json()
             except :
                 print(f"ATTEMPT {x+1}")

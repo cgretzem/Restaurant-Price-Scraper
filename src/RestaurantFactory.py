@@ -3,6 +3,7 @@
 from restaurants.BurgerKing import BurgerKing
 from restaurants.CarlsJr import CarlsJr
 from restaurants.JackInTheBox import JackInTheBox
+from restaurants.TacoBell import TacoBell
 from restaurants.Wendys import Wendys 
 from restaurants.Chipotle import Chipotle
 
@@ -20,6 +21,6 @@ class RestaurantFactory():
         if name == 'Carls Jr':
             return CarlsJr(zipcode, driver)
         if name == 'Taco Bell':
-            pass
+            return TacoBell(zipcode, driver)
         if name == 'Taco Bueno':
             pass
