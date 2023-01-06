@@ -39,7 +39,7 @@ class Excel:
             cell_str += str(i+2)
             if price != -1:
                 sheet[cell_str] = price
-        self.workbook.save('output.xlsx')
+        self.workbook.save('output1.xlsx')
 
     def get_addresses(self):
         zips = []

@@ -9,16 +9,17 @@ class Chipotle(Restaurant):
         self.availProducts = {
                 'Chicken Burrito': 'Chicken Burrito',
                 'Steak Burrito':'Steak Burrito',
-                'Guacamole':'Guacamole',
                 'Chicken Quesadilla':'Chicken Quesadilla',
-                'Steak Quesadilla':'Steak Quesadilla'
+                'Steak Quesadilla':'Steak Quesadilla',
+                'PLACEHOLDER1':'Steak Burrito with Guacamole',
+                'PLACEHOLDER2':'Chicken Burrito with Guacamole'
         }
         self.get_store()
         
         self.scrape_menu()
 
 
-    def scrape_menu(self):
+    async def scrape_menu(self):
         if self.store_num == None:
             self.default = True
             self.menu = self.default_menu()
@@ -31,18 +32,23 @@ class Chipotle(Restaurant):
         'Cookie': 'f5avrbbbbbbbbbbbbbbbb=AGELJLLMFJNGBOMNKHAOKOMFFACFEOMJCBEFHMLFNNEKPPNFHCIKCNCMJOPLIDALCFAAALIGAFJDEJDGDDFCFBHKBKGAJMAACKKCKNHDDKKCKHBEDNAHMAHGMMLFAMBN; TS01cfe0ce=013836ca937c6052e4c1c3b237dc07144d7fe301c557e1bf816ffd24bf7d9bf2fc846433f0c2a575084fa1aabb9170d2598f093f62ddfa3fc6fd82bba1fd2f398dd32118c7'
         }
 
-        response = requests.request("GET", url, headers=headers, data=payload).json()
+        response = await self.fetch(url, headers=headers, payload=payload)
         for item in response['entrees']:
             #print(item['itemName'])
             if item['itemName'] in self.availProducts.keys():
                 self.menu[item['itemName']] = item['unitPrice']
+
+        for item in response['sides']:
+            if item['itemName'] == 'Side of Guacamole':
+                self.menu['Chicken Burrito with Guacamole'] = self.menu['Chicken Burrito'] + item['unitPrice']
+                self.menu['Steak Burrito with Guacamole'] = self.menu['Steak Burrito'] + item['unitPrice']
 
         if not self.menu:
             self.store_index += 1
             self.get_store(index = self.store_index)
             self.scrape_menu()
 
-    def get_store(self, index = 0):
+    async def get_store(self, index = 0):
         url = "https://services.chipotle.com/restaurant/v3/restaurant"
 
         payload = json.dumps({
@@ -94,9 +100,9 @@ class Chipotle(Restaurant):
         'Cookie': 'f5avrbbbbbbbbbbbbbbbb=FDGEMIMDIBGMFAHOAKIKKDADDOCOJDNGOGLFCJPDMODBMFMPNFEDCPFGPDACLHLAAHMIAIAINGDDGMNEPEDNBEBEBDJAGACEDLLGIEINHMPEBMCKMNNOEAEABOINGEGL; TS01cfe0ce=013836ca93994ff26339c4eaa3df22c43dc082b1c3573ef84147794b4177c61c95e635c1075d73d4d82d19952d1d7a87b68b1f0fbc4cd168d5b79f2d063bbaf8c9357ee6e6'
         }
 
-        response = requests.request("POST", url, headers=headers, data=payload).json()
+        response = await self.post(url, headers=headers, payload=payload)
         try:
             self.store_num = response['data'][index]['restaurantNumber']
-            self.address.address = response['data'][index]['addresses'][0]
+            self.address.address = response['data'][index]['addresses'][0]['addressLine1']
         except IndexError:
             self.store_num = None

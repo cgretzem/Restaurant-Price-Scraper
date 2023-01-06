@@ -84,7 +84,7 @@ class TacoBell(Restaurant):
         for category in response['menuProductCategories']:
             for index in category['products']:
                 if index['name'] in self.availProducts.keys():
-                    if index['name'] == 'Pepsi®':
+                    if index['name'] == 'Pepsi®' or (index['name'] == 'Diet Pepsi®' and self.menu['Small Fountain Drink'] == -1):
                         self.menu[f'Small {self.availProducts[index["name"]]}'] = index['variantOptions'][0]['priceData']['value']
                         self.menu[f'Medium {self.availProducts[index["name"]]}'] = index['variantOptions'][1]['priceData']['value']
                         self.menu[f'Large {self.availProducts[index["name"]]}'] = index['variantOptions'][2]['priceData']['value']

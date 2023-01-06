@@ -66,7 +66,7 @@ class BurgerKing(Restaurant):
                     if item['isAvailable'] == False and self.availProducts[item['id']] not in self.menu.keys():
                         self.menu[self.availProducts[item['id']]] = -1
                         continue
-                    if self.availProducts[item['id']] not in self.menu.keys() or self.menu[self.availProducts[item['id']]] == -1 or self.menu[self.availProducts[item['id']]] == 0:
+                    elif self.availProducts[item['id']] not in self.menu.keys() or self.menu[self.availProducts[item['id']]] == -1 or self.menu[self.availProducts[item['id']]] == 0:
                         self.menu[self.availProducts[item['id']]] = item['price']['default']/100
 
 

@@ -22,15 +22,16 @@ class Restaurant(ABC):
         for x in range(3):
             try:
                 async with self.session.get(url, headers=headers, data=payload) as response:
-                    print(await response.text())
+                    #print(await response.text())
                     return await response.json()
-            except :
+            except Exception as e:
+                print(e)
                 print(f"ATTEMPT {x+1}")
                 await sleep(10)
         print("FINAL ATTEMPT : 30s")
         await sleep(30)
         async with self.session.get(url, headers=headers, data=payload) as response:
-                    return await response.json()
+            return await response.json()
         
     @abstractmethod
     async def scrape_menu(self):

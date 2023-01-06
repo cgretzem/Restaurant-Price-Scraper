@@ -127,7 +127,7 @@ class CarlsJr(Restaurant):
                         elif "Drink" in product['name']:
                             await self.add_size_group(product['id'], self.availProducts[product['name']], ['Small', 'Medium','Large'], type='drink')
                         else:
-                            await self.add_size_group(product['id'], self.availProducts[product['name']], ['Small', 'Medium',' Large'])
+                            await self.add_size_group(product['id'], self.availProducts[product['name']], ['Small', 'Medium','Large'])
                     else:
                         self.menu[self.availProducts[product['name']]] = product['cost']
         if not self.menu:

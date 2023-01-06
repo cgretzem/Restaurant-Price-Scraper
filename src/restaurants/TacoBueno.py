@@ -1,6 +1,9 @@
 from Restaurant import Restaurant
 import json
+import bs4 
 
+
+zips = {}
 class TacoBueno(Restaurant):
     def __init__(self, address):
         super().__init__(address)
@@ -72,9 +75,12 @@ class TacoBueno(Restaurant):
         
 
     async def get_store(self, index=0):
+
+        zipc = str(self.address.zipcode)
+
         url = "https://buenoonthego.com/mp/ndXTAL/searchPickupRestaurants_JSON"
 
-        payload=f'serviceTypeId=2&zipcode=\%22{self.address.zipcode}\%22&distanceInMiles=50&serviceHours=true'
+        payload='serviceTypeId=2&zipcode=%22' + zipc + '%22&distanceInMiles=50&serviceHours=true'
         headers = {
         'Accept': 'application/json, text/plain, */*',
         'Accept-Language': 'en-US,en;q=0.9',
@@ -95,7 +101,7 @@ class TacoBueno(Restaurant):
         response = await self.post(url, headers=headers, payload=payload)
 
         try:
-            self.id = response[self.store_num]['resturantid']
-            self.address.address = response[self.store_num][0]['address1']
+            self.store_num = response[self.store_index]['restaurantid']
+            self.address.address = response[self.store_index]['address1']
         except IndexError:
             self.store_num = -1

@@ -51,6 +51,7 @@ async def run_test(name):
     ex.set_active_sheet(sheet_name)
     items = {}
     all_zips = ex.read_zips()
+
     tasks = [task_func(zips, zipcode, sheet_name, driver, addresses[index]) for index,zipcode in enumerate(all_zips)]
     results = await asyncio.gather(*tasks)
     for item_obj in results:
@@ -90,22 +91,27 @@ async def run_all_restaurants():
                 f.write(f'{key},{val[0]},{val[1]}\n')
         print(zips_not_found)
     for sheet_name in ex.get_sheet_names():
+        if sheet_name.lower() == "mcdonalds":
+            continue
         ex.set_active_sheet(sheet_name)
         items = {}
         all_zips = ex.read_zips()
-        tasks = [task_func(zips, zipcode, sheet_name, driver) for index,zipcode in enumerate(all_zips)]
+        tasks = [task_func(zips, zipcode, sheet_name, driver, addresses[index]) for index,zipcode in enumerate(all_zips)]
         start = time.perf_counter()
         results = await asyncio.gather(*tasks)
-        total = start = time.perf_counter()
+        total = time.perf_counter() - start
+        print(f"Total time taken : {total/60}")
         for item_obj in results:
             for item, lst in item_obj[1].items():
                 items.setdefault(item, []).append(lst)
             items.setdefault('Competitive Address', []).append(item_obj[0])
 
-    print("WRITING TO EXCEL")
-    for item, lst in items.items():
-        ex.put_prices(item, lst)
+        print("WRITING TO EXCEL")
+        for item, lst in items.items():
+            ex.put_prices(item, lst)
+        items.clear()
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(run_test('Taco Bueno'))
+    loop.run_until_complete(run_test('Carls Jr'))
+    #loop.run_until_complete(run_all_restaurants())
