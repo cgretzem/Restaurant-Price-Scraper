@@ -15,6 +15,16 @@ class Restaurant(ABC):
         self.session = None
 
     async def post(self, url, headers=None, payload=None):
+        for x in range(3):
+            try:
+                async with self.session.post(url, headers=headers, data=payload) as response:
+                    return await response.json()
+            except Exception as e:
+                print(e)
+                print(f"ATTEMPT {x+1}")
+                await sleep(10)
+        print("FINAL ATTEMPT : 30s")
+        await sleep(30)
         async with self.session.post(url, headers=headers, data=payload) as response:
             return await response.json()
     async def fetch(self, url, headers=None, payload=None):

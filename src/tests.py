@@ -23,7 +23,7 @@ async def task_func(zips, zipcode, sheet_name, driver, address):
 
 async def run_test(name):
     driver = webdriver.Chrome()
-    ex = Excel('Jan 2023 copy.xlsx')
+    ex = Excel('output1.xlsx')
     addresses = ex.get_addresses()
     zips = {}
     try:
@@ -113,5 +113,5 @@ async def run_all_restaurants():
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(run_test('Carls Jr'))
+    loop.run_until_complete(run_test('Burger King'))
     #loop.run_until_complete(run_all_restaurants())

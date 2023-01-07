@@ -41,11 +41,11 @@ def load_zips():
 if __name__ == '__main__':
     zips = load_zips()
 
-    code = 48066
+    code = 85374
     lat, long = zips[code]
     ad = Address(code, "6333 Riverside Ave",latitude=lat, longitude=long)
     driver = webdriver.Chrome()
-    tc = CarlsJr(ad, driver)
+    tc = BurgerKing(ad)
     
     asyncio.run(tc.initalize())
     print(tc.menu)

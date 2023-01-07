@@ -63,11 +63,9 @@ class BurgerKing(Restaurant):
         if not 'errors' in response.keys():
             for item in response['data']['storeMenu']:
                 if item['id'] in self.availProducts.keys():
-                    if item['isAvailable'] == False and self.availProducts[item['id']] not in self.menu.keys():
-                        self.menu[self.availProducts[item['id']]] = -1
+                    if item['price']['default'] == 0:
                         continue
-                    elif self.availProducts[item['id']] not in self.menu.keys() or self.menu[self.availProducts[item['id']]] == -1 or self.menu[self.availProducts[item['id']]] == 0:
-                        self.menu[self.availProducts[item['id']]] = item['price']['default']/100
+                    self.menu[self.availProducts[item['id']]] = item['price']['default']/100
 
 
         if not self.menu:
